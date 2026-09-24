@@ -2,7 +2,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from quantmgmt.risk import to_returns, cumulative_returns, cagr
+
+from quantmgmt.risk import to_returns, cumulative_returns, cagr, annualized_volatility
 
 def test_to_returns_simple():
     prices = pd.Series([100, 110, 99])
@@ -74,3 +75,49 @@ def test_cagr():
     result = cagr(prices)
 
     assert result < 0
+
+def test_annualized_volatility():
+    prices = pd.Series([100, 110, 105, 115, 112])
+
+    result = annualized_volatility(
+        prices,
+        period="daily"
+    )
+
+    returns = prices.pct_change()
+    expected = returns.std(ddof=1) * np.sqrt(252)
+
+    assert result == pytest.approx(expected)
+
+
+def test_annualized_volatility_dataframe():
+    prices = pd.DataFrame({
+        "Asset_A": [100, 110, 105, 115, 112],
+        "Asset_B": [200, 210, 220, 215, 225],
+    })
+
+    result = annualized_volatility(
+        prices,
+        period="daily"
+    )
+
+    expected = prices.pct_change().std(ddof=1) * np.sqrt(252)
+
+    pd.testing.assert_series_equal(result, expected)
+
+def test_annualized_volatility_periods_per_year():
+    prices = pd.Series([100, 110, 105, 115, 112])
+
+    daily_vol = annualized_volatility(
+        prices,
+        period="daily"
+    )
+
+    monthly_vol = annualized_volatility(
+        prices,
+        period="monthly"
+    )
+
+    assert monthly_vol == pytest.approx(
+        daily_vol * np.sqrt(12 / 252)
+    )
