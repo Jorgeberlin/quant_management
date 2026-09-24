@@ -25,7 +25,7 @@ quant-management/
 ## Installation
 
 ```bash
-git clone <repository-url>
+git clone <https://github.com/Jorgeberlin/quant_management.git>
 cd quant-management
 
 python -m venv .venv
