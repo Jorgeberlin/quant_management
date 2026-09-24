@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quant-management"
+version = "0.1.0"
+description = "Quantitative Management project"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy",
+    "pandas",
+    "scipy",
+    "yfinance",
+    "matplotlib",
+    "seaborn",
+    "pytest"
+]
+
+[tool.setuptools.packages.find]
+include = ["quantmgmt*"]
