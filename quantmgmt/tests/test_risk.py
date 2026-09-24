@@ -2,8 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from quantmgmt.risk import to_returns
-
+from quantmgmt.risk import to_returns, cumulative_returns
 
 def test_to_returns_simple():
     prices = pd.Series([100, 110, 99])
@@ -50,3 +49,22 @@ def test_to_returns_invalid_method():
 
     with pytest.raises(ValueError):
         to_returns(prices, method="invalid")
+
+
+def test_cumulative_returns_simple():
+    prices = pd.Series([100, 110, 99])
+
+    result = cumulative_returns(prices, method="simple")
+
+    expected = 99 / 100 - 1
+
+    assert result == pytest.approx(expected)
+
+def test_cumulative_returns_log():
+    prices = pd.Series([100, 110, 99])
+
+    result = cumulative_returns(prices, method="log")
+
+    expected = np.log(99 / 100)
+
+    assert result == pytest.approx(expected)
