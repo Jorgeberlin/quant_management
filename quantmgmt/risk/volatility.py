@@ -23,3 +23,26 @@ def annualized_volatility(
     rets = to_returns(prices=prices, method=method)
 
     return rets.std(ddof=1) * np.sqrt(periods_per_year)
+
+def downside_deviation(
+    prices: pd.Series | pd.DataFrame,
+    period: Literal["daily", "monthly"],
+    mar: float = 0,
+    method: str = "simple",
+) -> pd.Series | pd.DataFrame:
+    """
+    El MAR es el minimum accepted rate de la fórmula.
+    """
+
+    if period == "daily":
+        periods_per_year = 252
+    elif period == "monthly":
+        periods_per_year = 12
+    else:
+        raise ValueError("period must be either 'daily' or 'monthly'")
+
+    rets = to_returns(prices=prices, method=method)
+
+    downside_returns = (rets - mar).clip(upper=0)
+
+    return np.sqrt((downside_returns ** 2).mean()) * np.sqrt(periods_per_year)

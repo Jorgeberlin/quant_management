@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 
 
-from quantmgmt.risk import to_returns, cumulative_returns, cagr, annualized_volatility
+from quantmgmt.risk import to_returns, cumulative_returns, cagr, annualized_volatility, downside_deviation
 
 def test_to_returns_simple():
     prices = pd.Series([100, 110, 99])
@@ -121,3 +121,20 @@ def test_annualized_volatility_periods_per_year():
     assert monthly_vol == pytest.approx(
         daily_vol * np.sqrt(12 / 252)
     )
+
+def test_downside_deviation():
+    prices = pd.Series([100, 110, 99, 108, 102])
+
+    result = downside_deviation(
+        prices,
+        period="daily"
+    )
+
+    returns = prices.pct_change()
+    downside_returns = returns.clip(upper=0)
+
+    expected = np.sqrt(
+        (downside_returns ** 2).mean()
+    ) * np.sqrt(252)
+
+    assert result == pytest.approx(expected)

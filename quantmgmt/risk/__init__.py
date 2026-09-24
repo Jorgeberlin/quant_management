@@ -1,9 +1,10 @@
 from .returns import to_returns, cumulative_returns, cagr
-from .volatility import annualized_volatility
+from .volatility import annualized_volatility, downside_deviation
 
 __all__ = [
     "to_returns",
     "cumulative_returns",
     "cagr",
     "annualized_volatility",
+    "downside_deviation",
 ]
