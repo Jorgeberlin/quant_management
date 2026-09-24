@@ -2,7 +2,7 @@
 
 Repository for the **Quantitative Management** project, covering risk analysis, factor analysis and attribution, portfolio optimization, and backtesting.
 
-The project includes **reusable code, tests, documentation, and practical notebooks**.
+**Authors:** Xabier, Jorge Peñaranda 
 
 ## Project Structure
 
