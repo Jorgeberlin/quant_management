@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 
-# cumulative_returns podría "heredar" de to_returns. pensar esto.
+# cumulative_returns podría "heredar" de to_returns. pensar esto. se podría hacer una
+# clase para todos los metodos y encapsular todo mejor. de mopmento lo dejo naive.
 
 def to_returns(prices: pd.Series | pd.DataFrame,method: str = "simple") -> pd.Series | pd.DataFrame:
 
@@ -13,7 +14,7 @@ def to_returns(prices: pd.Series | pd.DataFrame,method: str = "simple") -> pd.Se
 
     raise ValueError("method must be either 'simple' or 'log'")
 
-def cumulative_returns(prices: pd.Series | pd.DataFrame,method: str = "simple",) -> pd.Series | pd.DataFrame:
+def cumulative_returns(prices: pd.Series | pd.DataFrame,method: str = "simple") -> pd.Series | pd.DataFrame:
 
     if method == "simple":
         returns = prices.pct_change()
@@ -24,3 +25,10 @@ def cumulative_returns(prices: pd.Series | pd.DataFrame,method: str = "simple",)
         return returns.iloc[1:].sum()
 
     raise ValueError("method must be either 'simple' or 'log'")
+
+def cagr(prices: pd.Series | pd.DataFrame,method: str = "simple") -> pd.Series | pd.DataFrame:
+
+    return ([len(prices)-1] / prices[0])**(1/(len(prices)/252))-1
+
+
+    

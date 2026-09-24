@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from quantmgmt.risk import to_returns, cumulative_returns
+from quantmgmt.risk import to_returns, cumulative_returns, cagr
 
 def test_to_returns_simple():
     prices = pd.Series([100, 110, 99])
@@ -68,3 +68,9 @@ def test_cumulative_returns_log():
     expected = np.log(99 / 100)
 
     assert result == pytest.approx(expected)
+
+def test_cagr():
+    prices = pd.Series([100, 110, 99])
+    result = cagr(prices)
+
+    assert result < 0
