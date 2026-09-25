@@ -1,5 +1,5 @@
 from .returns import to_returns, cumulative_returns, cagr
-from .volatility import annualized_volatility, downside_deviation
+from .volatility import annualized_volatility, downside_deviation, rolling_volatility
 
 __all__ = [
     "to_returns",
@@ -7,4 +7,5 @@ __all__ = [
     "cagr",
     "annualized_volatility",
     "downside_deviation",
+    "rolling_volatility"
 ]

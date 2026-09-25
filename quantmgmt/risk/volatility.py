@@ -46,3 +46,24 @@ def downside_deviation(
     downside_returns = (rets - mar).clip(upper=0)
 
     return np.sqrt((downside_returns ** 2).mean()) * np.sqrt(periods_per_year)
+
+def rolling_volatility(
+    prices: pd.Series | pd.DataFrame,
+    window: int = 21,
+    period: Literal["daily", "monthly"] = "daily",
+    method: str = "simple",
+) -> pd.Series | pd.DataFrame:
+
+    if period == "daily":
+        periods_per_year = 252
+    elif period == "monthly":
+        periods_per_year = 12
+    else:
+        raise ValueError("period must be either 'daily' or 'monthly'")
+
+    if window <= 0:
+        raise ValueError("window must be greater than 0")
+
+    rets = to_returns(prices=prices, method=method)
+
+    return rets.rolling(window=window).std(ddof=1) * np.sqrt(periods_per_year)
