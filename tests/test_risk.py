@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from quantmgmt.risk import to_returns, cumulative_returns, cagr, annualized_volatility, downside_deviation, rolling_volatility
+from quantmgmt.risk import to_returns, cumulative_returns, cagr, annualized_volatility, downside_deviation, rolling_volatility, drawdown_series, max_drawdown
 
 # TODO: GENERAR SERIES PARA TESTEAR Y PONERLAS EN CONFTEST, DE MOMENTO SE HACE CON SERIES DUMMY 
 # PERO MEJOR HACERLO TODO HOMOGENEO DESDE CONFTEST.
@@ -158,5 +158,50 @@ def test_rolling_volatility(prices):
 
     pd.testing.assert_series_equal(result, expected)
 
+
+def test_drawdown_series(prices):
+    result = drawdown_series(prices)
+
+    running_max = prices.cummax()
+    expected = prices / running_max - 1
+
+    pd.testing.assert_series_equal(result, expected)
+
+
+def test_drawdown_series_dataframe(prices):
+    prices_df = pd.DataFrame({
+        "Asset_A": prices,
+        "Asset_B": prices * 1.05,
+    })
+
+    result = drawdown_series(prices_df)
+
+    running_max = prices_df.cummax()
+    expected = prices_df / running_max - 1
+
+    pd.testing.assert_frame_equal(result, expected)
+
+
+def test_max_drawdown(prices):
+    result = max_drawdown(prices)
+
+    drawdowns = prices / prices.cummax() - 1
+    expected = drawdowns.min()
+
+    assert result == pytest.approx(expected)
+
+
+def test_max_drawdown_dataframe(prices):
+    prices_df = pd.DataFrame({
+        "Asset_A": prices,
+        "Asset_B": prices * 1.05,
+    })
+
+    result = max_drawdown(prices_df)
+
+    drawdowns = prices_df / prices_df.cummax() - 1
+    expected = drawdowns.min()
+
+    pd.testing.assert_series_equal(result, expected)
 
 
