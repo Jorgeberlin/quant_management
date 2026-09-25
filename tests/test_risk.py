@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 import pytest
+from quantmgmt.risk import to_returns, cumulative_returns, cagr, annualized_volatility, downside_deviation, rolling_volatility
 
-
-from quantmgmt.risk import to_returns, cumulative_returns, cagr, annualized_volatility, downside_deviation
-
+# TODO: GENERAR SERIES PARA TESTEAR Y PONERLAS EN CONFTEST, DE MOMENTO SE HACE CON SERIES DUMMY 
+# PERO MEJOR HACERLO TODO HOMOGENEO DESDE CONFTEST.
 def test_to_returns_simple():
     prices = pd.Series([100, 110, 99])
 
@@ -138,3 +138,25 @@ def test_downside_deviation():
     ) * np.sqrt(252)
 
     assert result == pytest.approx(expected)
+
+
+def test_rolling_volatility(prices):
+    result = rolling_volatility(
+        prices,
+        window=21,
+        period="daily"
+    )
+
+    returns = prices.pct_change()
+
+    expected = (
+        returns
+        .rolling(window=21)
+        .std(ddof=1)
+        * np.sqrt(252)
+    )
+
+    pd.testing.assert_series_equal(result, expected)
+
+
+
