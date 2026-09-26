@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# Entorno
+.venv/
+
+# Herramientas
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Caché de datos (mantener la carpeta)
+data/cache/*
+!data/cache/.gitkeep

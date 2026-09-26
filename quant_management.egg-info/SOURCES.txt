@@ -1,8 +1,0 @@
-README.md
-pyproject.toml
-quant_management.egg-info/PKG-INFO
-quant_management.egg-info/SOURCES.txt
-quant_management.egg-info/dependency_links.txt
-quant_management.egg-info/requires.txt
-quant_management.egg-info/top_level.txt
-quantmgmt/__init__.py
