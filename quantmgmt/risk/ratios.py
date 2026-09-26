@@ -69,3 +69,30 @@ def calmar_ratio(
     drawdown = max_drawdown(prices)
 
     return annualized_return / abs(drawdown)
+
+def tracking_error(
+    prices: pd.Series | pd.DataFrame,
+    benchmark_prices: pd.Series,
+    period: Literal["daily", "monthly"],
+    method: str = "simple",
+) -> float | pd.Series:
+    """Tracking error anualizado: volatilidad de los retornos activos
+    (cartera - benchmark).
+
+    Mide cuánto se separa la cartera de su índice de referencia. Si
+    ``prices`` es un DataFrame, se calcula para cada columna contra el
+    mismo benchmark. Las fechas se alinean por índice.
+    """
+    if period == "daily":
+        periods_per_year = 252
+    elif period == "monthly":
+        periods_per_year = 12
+    else:
+        raise ValueError("period must be either 'daily' or 'monthly'")
+
+    returns = to_returns(prices, method=method)
+    benchmark_returns = to_returns(benchmark_prices, method=method)
+
+    active_returns = returns.sub(benchmark_returns, axis=0)
+
+    return active_returns.std(ddof=1) * np.sqrt(periods_per_year)
