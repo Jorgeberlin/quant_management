@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+from typing import Literal
 # cumulative_returns podría "heredar" de to_returns. pensar esto. se podría hacer una
 # clase para todos los metodos y encapsular todo mejor. de mopmento lo dejo naive.
 
@@ -32,3 +32,15 @@ def cagr(prices: pd.Series | pd.DataFrame,method: str = "simple") -> pd.Series |
 
 
     
+def annualized_return( prices: pd.Series | pd.DataFrame, period: Literal["daily", "monthly"], method: str = "simple",) -> float | pd.Series:
+    
+    if period == "daily":
+        periods_per_year = 252
+    elif period == "monthly":
+        periods_per_year = 12
+    else:
+        raise ValueError("period must be either 'daily' or 'monthly'")
+
+    returns = to_returns(prices, method=method)
+
+    return returns.mean() * periods_per_year
