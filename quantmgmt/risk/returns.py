@@ -26,13 +26,24 @@ def cumulative_returns(prices: pd.Series | pd.DataFrame,method: str = "simple") 
 
     raise ValueError("method must be either 'simple' or 'log'")
 
-def cagr(prices: pd.Series | pd.DataFrame,method: str = "simple") -> pd.Series | pd.DataFrame:
+def cagr(
+    prices: pd.Series | pd.DataFrame,
+    method: str = "simple",
+) -> float | pd.Series:
 
-    return ([len(prices)-1] / prices[0])**(1/(len(prices)/252))-1
+    if method == "simple":
+        return (
+            prices.iloc[-1] / prices.iloc[0]
+        ) ** (252 / len(prices)) - 1
+
+    else:
+        raise ValueError("method must be 'simple'")
 
 
     
-def annualized_return( prices: pd.Series | pd.DataFrame, period: Literal["daily", "monthly"], method: str = "simple",) -> float | pd.Series:
+def annualized_return( prices: pd.Series | pd.DataFrame, 
+                      period: Literal["daily", "monthly"] = "daily", 
+                      method: str = "simple",) -> float | pd.Series:
     
     if period == "daily":
         periods_per_year = 252

@@ -9,7 +9,7 @@ from .drawdown import max_drawdown
 # asumiendo que la rf es constante, esto podmeos cambiarlo en el futuro!
 def sharpe_ratio(   
     prices: pd.Series | pd.DataFrame,
-    period: Literal["daily", "monthly"],
+    period: Literal["daily", "monthly"] = "daily",
     risk_free_rate: float = 0,
     method: str = "simple",
 ) -> float | pd.Series:
@@ -35,7 +35,7 @@ def sharpe_ratio(
 
 def sortino_ratio(
     prices: pd.Series | pd.DataFrame,
-    period: Literal["daily", "monthly"],
+    period: Literal["daily", "monthly"] = "daily",
     risk_free_rate: float = 0,
     method: str = "simple",
 ) -> float | pd.Series:
@@ -73,7 +73,7 @@ def calmar_ratio(
 def tracking_error(
     prices: pd.Series | pd.DataFrame,
     benchmark_prices: pd.Series,
-    period: Literal["daily", "monthly"],
+    period: Literal["daily", "monthly"] = "daily",
     method: str = "simple",
 ) -> float | pd.Series:
     """Tracking error anualizado: volatilidad de los retornos activos

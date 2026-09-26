@@ -9,7 +9,7 @@ from .returns import to_returns
 
 def annualized_volatility(
     prices: pd.Series | pd.DataFrame,
-    period: Literal["daily", "monthly"],
+    period: Literal["daily", "monthly"] = "daily",
     method: str = "simple",
 ) -> pd.Series | pd.DataFrame:
 

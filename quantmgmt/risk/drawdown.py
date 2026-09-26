@@ -30,6 +30,34 @@ def time_under_water(
 
     return underwater.groupby(groups).cumsum()
 
+import pandas as pd
+
+
+import pandas as pd
+
+
+def max_time_under_water(
+    prices: pd.Series | pd.DataFrame,
+) -> int | pd.Series:
+
+    def _max_time(series: pd.Series) -> int:
+        cumulative = series / series.iloc[0]
+        running_max = cumulative.cummax()
+
+        underwater = cumulative < running_max
+        groups = (~underwater).cumsum()
+
+        return int(underwater.groupby(groups).cumsum().max())
+
+    if isinstance(prices, pd.Series):
+        return _max_time(prices)
+
+    elif isinstance(prices, pd.DataFrame):
+        return prices.apply(_max_time)
+
+    else:
+        raise TypeError("prices must be a pandas Series or DataFrame")
+
 def _recovery_time_1d(prices: pd.Series) -> float:
     prices = prices.dropna()
     drawdowns = drawdown_series(prices)
