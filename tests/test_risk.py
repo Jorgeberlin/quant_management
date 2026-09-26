@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from quantmgmt.risk import to_returns, cumulative_returns, cagr, annualized_volatility, downside_deviation, rolling_volatility, drawdown_series, max_drawdown
+from quantmgmt.risk import to_returns, cumulative_returns, cagr, annualized_return,  annualized_volatility, downside_deviation, rolling_volatility, drawdown_series, max_drawdown
 
 # TODO: GENERAR SERIES PARA TESTEAR Y PONERLAS EN CONFTEST, DE MOMENTO SE HACE CON SERIES DUMMY 
 # PERO MEJOR HACERLO TODO HOMOGENEO DESDE CONFTEST.

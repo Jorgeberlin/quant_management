@@ -9,13 +9,18 @@ description = "Quantitative Management project"
 requires-python = ">=3.11"
 dependencies = [
     "numpy",
-    "pandas",
+    "pandas>=2.1",
     "scipy",
     "yfinance",
     "matplotlib",
     "seaborn",
-    "pytest"
 ]
+
+[project.optional-dependencies]
+dev = ["pytest"]
 
 [tool.setuptools.packages.find]
 include = ["quantmgmt*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"] 
