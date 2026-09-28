@@ -95,15 +95,25 @@ PERCENT_COLUMNS = (
 )
 
 
-def format_risk_summary(summary: pd.DataFrame):
+def format_risk_summary(summary: pd.DataFrame, transpose: bool = False):
     """Estilo para mostrar la tabla en el notebook: porcentajes y 2 decimales.
 
-    Devuelve un ``Styler``; los datos originales no se modifican.
+    Con ``transpose=True`` muestra las métricas en filas y los activos en
+    columnas (más legible con muchas métricas). Devuelve un ``Styler``; los
+    datos originales no se modifican.
     """
-    formats = {
-        col: "{:.2%}" if col.startswith(PERCENT_COLUMNS) else "{:.2f}"
-        for col in summary.columns
-    }
-    formats.update({"Max Time Under Water": "{:.0f}", "Recovery Time": "{:.0f}"})
+    def _fmt(metric: str) -> str:
+        if metric in ("Max Time Under Water", "Recovery Time"):
+            return "{:.0f}"
+        return "{:.2%}" if metric.startswith(PERCENT_COLUMNS) else "{:.2f}"
 
-    return summary.style.format(formats, na_rep="no recuperado")
+    if not transpose:
+        formats = {col: _fmt(col) for col in summary.columns}
+        return summary.style.format(formats, na_rep="no recuperado")
+
+    styler = summary.T.style
+    for metric in summary.columns:
+        styler = styler.format(
+            _fmt(metric), subset=pd.IndexSlice[[metric], :], na_rep="no recuperado"
+        )
+    return styler

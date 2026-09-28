@@ -40,4 +40,8 @@ def test_summary_risk_free_lowers_sharpe():
 
 
 def test_format_does_not_fail():
-    format_risk_summary(generate_risk_summary(make_prices())).to_html()
+    summary = generate_risk_summary(make_prices())
+
+    format_risk_summary(summary).to_html()
+    html = format_risk_summary(summary, transpose=True).to_html()
+    assert "%" in html
