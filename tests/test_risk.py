@@ -81,7 +81,7 @@ def test_annualized_volatility():
 
     result = annualized_volatility(
         prices,
-        period="daily"
+        periods_per_year=252
     )
 
     returns = prices.pct_change()
@@ -98,7 +98,7 @@ def test_annualized_volatility_dataframe():
 
     result = annualized_volatility(
         prices,
-        period="daily"
+        periods_per_year=252
     )
 
     expected = prices.pct_change().std(ddof=1) * np.sqrt(252)
@@ -110,12 +110,12 @@ def test_annualized_volatility_periods_per_year():
 
     daily_vol = annualized_volatility(
         prices,
-        period="daily"
+        periods_per_year=252
     )
 
     monthly_vol = annualized_volatility(
         prices,
-        period="monthly"
+        periods_per_year=12
     )
 
     assert monthly_vol == pytest.approx(
@@ -127,7 +127,7 @@ def test_downside_deviation():
 
     result = downside_deviation(
         prices,
-        period="daily"
+        periods_per_year=252
     )
 
     returns = prices.pct_change()
@@ -144,7 +144,7 @@ def test_rolling_volatility(prices):
     result = rolling_volatility(
         prices,
         window=21,
-        period="daily"
+        periods_per_year=252
     )
 
     returns = prices.pct_change()
