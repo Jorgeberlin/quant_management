@@ -1,43 +1,102 @@
 import pandas as pd
 
-from quantmgmt.risk.returns import annualized_return
-from quantmgmt.risk.volatility import annualized_volatility
-from quantmgmt.risk.ratios import (
-    sharpe_ratio,
-    sortino_ratio,
+from quantmgmt.risk import (
+    annualized_return,
+    annualized_volatility,
+    cagr,
     calmar_ratio,
-)
-from quantmgmt.risk.drawdown import (
+    cvar_historical,
+    cvar_parametric,
+    downside_deviation,
+    kurtosis,
     max_drawdown,
     max_time_under_water,
+    recovery_time,
+    sharpe_ratio,
+    skewness,
+    sortino_ratio,
+    tracking_error,
+    var_historical,
+    var_parametric,
 )
+from quantmgmt.risk.utils import TRADING_DAYS
 
 
 def generate_risk_summary(
     prices: pd.DataFrame,
+    periods_per_year: int = TRADING_DAYS,
+    risk_free_rate: float = 0.0,
+    confidence: float = 0.95,
+    benchmark_prices: pd.Series | None = None,
 ) -> pd.DataFrame:
-    """
-    Generate a summary of the main risk and performance metrics.
+    """Tabla con todas las métricas de riesgo y rentabilidad, una fila por activo.
 
-    Parameters
+    Parámetros
     ----------
     prices : pd.DataFrame
-        Asset prices. Each column represents an asset.
+        Precios, una columna por activo, cartera o NAV.
+    periods_per_year : int
+        Frecuencia de los datos (252 diarios, 52 semanales, 12 mensuales).
+    risk_free_rate : float
+        Tipo libre de riesgo **anual** para Sharpe y Sortino.
+    confidence : float
+        Nivel de confianza de VaR y CVaR.
+    benchmark_prices : pd.Series, opcional
+        Si se pasa, se añade el tracking error frente a él.
 
-    Returns
-    -------
-    pd.DataFrame
-        Risk and performance metrics for each asset.
+    Notas
+    -----
+    VaR y CVaR están en el horizonte de los datos (diario con precios
+    diarios) y como pérdida positiva. Los tiempos están en periodos.
     """
+    pct = f"{confidence:.0%}"
 
     summary = pd.DataFrame({
-        "Annualized Return": annualized_return(prices),
-        "Annualized Volatility": annualized_volatility(prices),
-        "Sharpe Ratio": sharpe_ratio(prices),
-        "Sortino Ratio": sortino_ratio(prices),
-        "Calmar Ratio": calmar_ratio(prices),
+        # Rentabilidad
+        "CAGR": cagr(prices, periods_per_year=periods_per_year),
+        "Annualized Return": annualized_return(prices, periods_per_year=periods_per_year),
+        # Dispersión
+        "Annualized Volatility": annualized_volatility(prices, periods_per_year=periods_per_year),
+        "Downside Deviation": downside_deviation(prices, periods_per_year=periods_per_year),
+        # Ratios
+        "Sharpe Ratio": sharpe_ratio(prices, periods_per_year=periods_per_year, risk_free_rate=risk_free_rate),
+        "Sortino Ratio": sortino_ratio(prices, periods_per_year=periods_per_year, risk_free_rate=risk_free_rate),
+        "Calmar Ratio": calmar_ratio(prices, periods_per_year=periods_per_year),
+        # Drawdown
         "Maximum Drawdown": max_drawdown(prices),
         "Max Time Under Water": max_time_under_water(prices),
+        "Recovery Time": recovery_time(prices),
+        # Cola
+        f"VaR {pct} Historical": var_historical(prices, confidence=confidence),
+        f"VaR {pct} Gaussian": var_parametric(prices, confidence=confidence, distribution="gaussian"),
+        f"VaR {pct} Cornish-Fisher": var_parametric(prices, confidence=confidence, distribution="cornish_fisher"),
+        f"CVaR {pct} Historical": cvar_historical(prices, confidence=confidence),
+        f"CVaR {pct} Gaussian": cvar_parametric(prices, confidence=confidence),
+        "Skewness": skewness(prices),
+        "Excess Kurtosis": kurtosis(prices),
     })
 
+    if benchmark_prices is not None:
+        summary["Tracking Error"] = tracking_error(prices, benchmark_prices, periods_per_year=periods_per_year)
+
     return summary
+
+
+PERCENT_COLUMNS = (
+    "CAGR", "Annualized Return", "Annualized Volatility", "Downside Deviation",
+    "Maximum Drawdown", "VaR", "CVaR", "Tracking Error",
+)
+
+
+def format_risk_summary(summary: pd.DataFrame):
+    """Estilo para mostrar la tabla en el notebook: porcentajes y 2 decimales.
+
+    Devuelve un ``Styler``; los datos originales no se modifican.
+    """
+    formats = {
+        col: "{:.2%}" if col.startswith(PERCENT_COLUMNS) else "{:.2f}"
+        for col in summary.columns
+    }
+    formats.update({"Max Time Under Water": "{:.0f}", "Recovery Time": "{:.0f}"})
+
+    return summary.style.format(formats, na_rep="no recuperado")
