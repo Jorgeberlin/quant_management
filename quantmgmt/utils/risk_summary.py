@@ -15,6 +15,9 @@ from quantmgmt.risk import (
     sharpe_ratio,
     skewness,
     sortino_ratio,
+    tail_adjusted_sharpe,
+    tail_adjusted_volatility,
+    tail_excess_ratio,
     tracking_error,
     var_historical,
     var_parametric,
@@ -74,6 +77,10 @@ def generate_risk_summary(
         f"CVaR {pct} Gaussian": cvar_parametric(prices, confidence=confidence),
         "Skewness": skewness(prices),
         "Excess Kurtosis": kurtosis(prices),
+                # Métrica propia (nivel fijo 97,5 %, ver quantmgmt/risk/custom.py)
+        "Tail Excess Ratio": tail_excess_ratio(prices),
+        "Tail-Adjusted Volatility": tail_adjusted_volatility(prices, periods_per_year=periods_per_year),
+        "Tail-Adjusted Sharpe": tail_adjusted_sharpe(prices, periods_per_year=periods_per_year, risk_free_rate=risk_free_rate),
     })
 
     if benchmark_prices is not None:
@@ -84,7 +91,7 @@ def generate_risk_summary(
 
 PERCENT_COLUMNS = (
     "CAGR", "Annualized Return", "Annualized Volatility", "Downside Deviation",
-    "Maximum Drawdown", "VaR", "CVaR", "Tracking Error",
+    "Maximum Drawdown", "VaR", "CVaR", "Tracking Error", "Tail-Adjusted Volatility",
 )
 
 
