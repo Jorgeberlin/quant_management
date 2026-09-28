@@ -205,3 +205,8 @@ def test_max_drawdown_dataframe(prices):
     pd.testing.assert_series_equal(result, expected)
 
 
+def test_public_api():
+    import quantmgmt.risk as risk
+
+    for name in risk.__all__:
+        assert hasattr(risk, name), f"{name} está en __all__ pero no existe"
