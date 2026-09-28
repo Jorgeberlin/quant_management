@@ -1,62 +1,64 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def drawdown_series(
     prices: pd.Series | pd.DataFrame,
 ) -> pd.Series | pd.DataFrame:
+    """Caída respecto al máximo previo en cada fecha: ``P_t / max(P_s, s<=t) - 1``.
 
+    Siempre <= 0. Los NaN iniciales (activo que empieza más tarde) se mantienen.
+    """
     running_max = prices.cummax()
 
     return prices / running_max - 1
 
+
 def max_drawdown(
     prices: pd.Series | pd.DataFrame,
 ) -> float | pd.Series:
-
+    """Peor caída de pico a valle de toda la muestra (número negativo)."""
     drawdowns = drawdown_series(prices)
 
     return drawdowns.min()
 
-def time_under_water(
-    prices: pd.Series,
-) -> pd.Series:
 
-    drawdowns = drawdown_series(prices)
+def _time_under_water_1d(prices: pd.Series) -> pd.Series:
+    drawdowns = drawdown_series(prices.dropna())
 
     underwater = drawdowns < 0
-
     groups = (~underwater).cumsum()
 
     return underwater.groupby(groups).cumsum()
 
-import pandas as pd
 
+def time_under_water(
+    prices: pd.Series | pd.DataFrame,
+) -> pd.Series | pd.DataFrame:
+    """Periodos consecutivos por debajo del máximo previo, en cada fecha.
 
-import pandas as pd
+    Vuelve a 0 al marcar un nuevo máximo. Unidades: periodos (días hábiles
+    con datos diarios). Con DataFrame se calcula columna a columna, ignorando
+    los NaN de cada activo.
+    """
+    if isinstance(prices, pd.DataFrame):
+        return prices.apply(_time_under_water_1d)
+
+    return _time_under_water_1d(prices)
 
 
 def max_time_under_water(
     prices: pd.Series | pd.DataFrame,
 ) -> int | pd.Series:
-
-    def _max_time(series: pd.Series) -> int:
-        cumulative = series / series.iloc[0]
-        running_max = cumulative.cummax()
-
-        underwater = cumulative < running_max
-        groups = (~underwater).cumsum()
-
-        return int(underwater.groupby(groups).cumsum().max())
-
+    """Racha más larga (en periodos) sin recuperar el máximo previo."""
     if isinstance(prices, pd.Series):
-        return _max_time(prices)
+        return int(time_under_water(prices).max())
 
-    elif isinstance(prices, pd.DataFrame):
-        return prices.apply(_max_time)
+    if isinstance(prices, pd.DataFrame):
+        return time_under_water(prices).max().astype(int)
 
-    else:
-        raise TypeError("prices must be a pandas Series or DataFrame")
+    raise TypeError("prices must be a pandas Series or DataFrame")
+
 
 def _recovery_time_1d(prices: pd.Series) -> float:
     prices = prices.dropna()

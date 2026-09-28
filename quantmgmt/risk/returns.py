@@ -30,14 +30,21 @@ def cagr(
     prices: pd.Series | pd.DataFrame,
     method: str = "simple",
 ) -> float | pd.Series:
+    """Tasa de crecimiento anual compuesta.
 
-    if method == "simple":
-        return (
-            prices.iloc[-1] / prices.iloc[0]
-        ) ** (252 / len(prices)) - 1
-
-    else:
+    ``CAGR = prod(1 + r) ** (252 / N) - 1``, con N el número de retornos
+    válidos de cada columna. Así un activo que empieza a cotizar más tarde
+    (NaN iniciales) se anualiza con sus propios años.
+    """
+    if method != "simple":
         raise ValueError("method must be 'simple'")
+
+    returns = to_returns(prices)
+
+    n = returns.count()
+    growth = (1 + returns).prod()
+
+    return growth ** (252 / n) - 1
 
 
     
