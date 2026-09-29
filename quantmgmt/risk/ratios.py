@@ -1,25 +1,20 @@
 import numpy as np
 import pandas as pd
-from typing import Literal
 
 from .returns import to_returns, cagr
 from .volatility import downside_deviation
 from .drawdown import max_drawdown
+from .utils import TRADING_DAYS, validate_periods_per_year
 
 # asumiendo que la rf es constante, esto podmeos cambiarlo en el futuro!
-def sharpe_ratio(   
+def sharpe_ratio(
     prices: pd.Series | pd.DataFrame,
-    period: Literal["daily", "monthly"] = "daily",
+    periods_per_year: int = TRADING_DAYS,
     risk_free_rate: float = 0,
     method: str = "simple",
 ) -> float | pd.Series:
 
-    if period == "daily":
-        periods_per_year = 252
-    elif period == "monthly":
-        periods_per_year = 12
-    else:
-        raise ValueError("period must be either 'daily' or 'monthly'")
+    validate_periods_per_year(periods_per_year)
 
     returns = to_returns(prices, method=method)
 
@@ -35,17 +30,12 @@ def sharpe_ratio(
 
 def sortino_ratio(
     prices: pd.Series | pd.DataFrame,
-    period: Literal["daily", "monthly"] = "daily",
+    periods_per_year: int = TRADING_DAYS,
     risk_free_rate: float = 0,
     method: str = "simple",
 ) -> float | pd.Series:
 
-    if period == "daily":
-        periods_per_year = 252
-    elif period == "monthly":
-        periods_per_year = 12
-    else:
-        raise ValueError("period must be either 'daily' or 'monthly'")
+    validate_periods_per_year(periods_per_year)
 
     returns = to_returns(prices, method=method)
 
@@ -54,7 +44,7 @@ def sortino_ratio(
 
     downside = downside_deviation(
         prices,
-        period=period,
+        periods_per_year=periods_per_year,
         mar=risk_free_rate / periods_per_year,
         method=method,
     )
@@ -63,17 +53,21 @@ def sortino_ratio(
 
 def calmar_ratio(
     prices: pd.Series | pd.DataFrame,
+    periods_per_year: int = TRADING_DAYS,
 ) -> float | pd.Series:
+    """CAGR / |máximo drawdown|. NaN si no ha habido drawdown."""
+    annualized_return = cagr(prices, periods_per_year=periods_per_year)
+    drawdown = abs(max_drawdown(prices))
 
-    annualized_return = cagr(prices)
-    drawdown = max_drawdown(prices)
+    if isinstance(drawdown, pd.Series):
+        return annualized_return / drawdown.replace(0, np.nan)
 
-    return annualized_return / abs(drawdown)
+    return annualized_return / drawdown if drawdown > 0 else np.nan
 
 def tracking_error(
     prices: pd.Series | pd.DataFrame,
     benchmark_prices: pd.Series,
-    period: Literal["daily", "monthly"] = "daily",
+    periods_per_year: int = TRADING_DAYS,
     method: str = "simple",
 ) -> float | pd.Series:
     """Tracking error anualizado: volatilidad de los retornos activos
@@ -83,12 +77,7 @@ def tracking_error(
     ``prices`` es un DataFrame, se calcula para cada columna contra el
     mismo benchmark. Las fechas se alinean por índice.
     """
-    if period == "daily":
-        periods_per_year = 252
-    elif period == "monthly":
-        periods_per_year = 12
-    else:
-        raise ValueError("period must be either 'daily' or 'monthly'")
+    validate_periods_per_year(periods_per_year)
 
     returns = to_returns(prices, method=method)
     benchmark_returns = to_returns(benchmark_prices, method=method)

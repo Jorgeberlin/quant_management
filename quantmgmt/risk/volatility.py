@@ -1,24 +1,17 @@
 import numpy as np
 import pandas as pd
-from typing import Literal
 
 from .returns import to_returns
+from .utils import TRADING_DAYS, validate_periods_per_year
 
-#aquí podemos hacer que el period venga de una estructura superior para que las metricas sean
-#todas homogeneas si se quiere.
 
 def annualized_volatility(
     prices: pd.Series | pd.DataFrame,
-    period: Literal["daily", "monthly"] = "daily",
+    periods_per_year: int = TRADING_DAYS,
     method: str = "simple",
 ) -> pd.Series | pd.DataFrame:
 
-    if period == "daily":
-        periods_per_year = 252
-    elif period == "monthly":
-        periods_per_year = 12
-    else:
-        raise ValueError("period must be either 'daily' or 'monthly'")
+    validate_periods_per_year(periods_per_year)
 
     rets = to_returns(prices=prices, method=method)
 
@@ -26,7 +19,7 @@ def annualized_volatility(
 
 def downside_deviation(
     prices: pd.Series | pd.DataFrame,
-    period: Literal["daily", "monthly"],
+    periods_per_year: int = TRADING_DAYS,
     mar: float = 0,
     method: str = "simple",
 ) -> pd.Series | pd.DataFrame:
@@ -34,12 +27,7 @@ def downside_deviation(
     El MAR es el minimum accepted rate de la fórmula.
     """
 
-    if period == "daily":
-        periods_per_year = 252
-    elif period == "monthly":
-        periods_per_year = 12
-    else:
-        raise ValueError("period must be either 'daily' or 'monthly'")
+    validate_periods_per_year(periods_per_year)
 
     rets = to_returns(prices=prices, method=method)
 
@@ -50,16 +38,11 @@ def downside_deviation(
 def rolling_volatility(
     prices: pd.Series | pd.DataFrame,
     window: int = 21,
-    period: Literal["daily", "monthly"] = "daily",
+    periods_per_year: int = TRADING_DAYS,
     method: str = "simple",
 ) -> pd.Series | pd.DataFrame:
 
-    if period == "daily":
-        periods_per_year = 252
-    elif period == "monthly":
-        periods_per_year = 12
-    else:
-        raise ValueError("period must be either 'daily' or 'monthly'")
+    validate_periods_per_year(periods_per_year)
 
     if window <= 0:
         raise ValueError("window must be greater than 0")

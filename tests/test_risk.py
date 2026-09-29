@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from quantmgmt.risk import to_returns, cumulative_returns, cagr, annualized_return,  annualized_volatility, downside_deviation, rolling_volatility, drawdown_series, max_drawdown
+from quantmgmt.risk import to_returns, cumulative_returns, cagr, annualized_return,  annualized_volatility, downside_deviation, rolling_volatility, drawdown_series, max_drawdown, time_under_water, max_time_under_water
 
 # TODO: GENERAR SERIES PARA TESTEAR Y PONERLAS EN CONFTEST, DE MOMENTO SE HACE CON SERIES DUMMY 
 # PERO MEJOR HACERLO TODO HOMOGENEO DESDE CONFTEST.
@@ -81,7 +81,7 @@ def test_annualized_volatility():
 
     result = annualized_volatility(
         prices,
-        period="daily"
+        periods_per_year=252
     )
 
     returns = prices.pct_change()
@@ -98,7 +98,7 @@ def test_annualized_volatility_dataframe():
 
     result = annualized_volatility(
         prices,
-        period="daily"
+        periods_per_year=252
     )
 
     expected = prices.pct_change().std(ddof=1) * np.sqrt(252)
@@ -110,12 +110,12 @@ def test_annualized_volatility_periods_per_year():
 
     daily_vol = annualized_volatility(
         prices,
-        period="daily"
+        periods_per_year=252
     )
 
     monthly_vol = annualized_volatility(
         prices,
-        period="monthly"
+        periods_per_year=12
     )
 
     assert monthly_vol == pytest.approx(
@@ -127,7 +127,7 @@ def test_downside_deviation():
 
     result = downside_deviation(
         prices,
-        period="daily"
+        periods_per_year=252
     )
 
     returns = prices.pct_change()
@@ -144,7 +144,7 @@ def test_rolling_volatility(prices):
     result = rolling_volatility(
         prices,
         window=21,
-        period="daily"
+        periods_per_year=252
     )
 
     returns = prices.pct_change()
@@ -205,3 +205,56 @@ def test_max_drawdown_dataframe(prices):
     pd.testing.assert_series_equal(result, expected)
 
 
+def test_public_api():
+    import quantmgmt.risk as risk
+
+    for name in risk.__all__:
+        assert hasattr(risk, name), f"{name} está en __all__ pero no existe"
+
+
+def test_cagr_doubling_one_year_with_dates():
+    # 253 precios = 252 retornos = 1 año; de 100 a 200 -> CAGR 100 %
+    dates = pd.bdate_range("2020-01-01", periods=253)
+    prices = pd.Series(np.linspace(100, 200, 253), index=dates)
+
+    assert cagr(prices) == pytest.approx(1.0)
+
+
+def test_cagr_asset_starting_later():
+    # B empieza un periodo después: su CAGR se calcula con sus propios datos
+    a = np.linspace(100, 200, 253)
+    df = pd.DataFrame({"A": a, "B": np.r_[np.nan, a[:-1]]})
+
+    result = cagr(df)
+
+    assert result["A"] == pytest.approx(1.0)
+    assert not np.isnan(result["B"])
+
+
+def test_time_under_water_known_path():
+    prices = pd.Series([100.0, 90.0, 95.0, 100.0, 80.0, 120.0])
+
+    assert time_under_water(prices).tolist() == [0, 1, 2, 0, 1, 0]
+
+
+def test_time_under_water_dataframe():
+    prices = [100.0, 90.0, 95.0, 100.0, 80.0, 120.0]
+    df = pd.DataFrame({"A": prices, "B": prices})
+
+    result = time_under_water(df)
+
+    assert isinstance(result, pd.DataFrame)
+    assert result["B"].tolist() == [0, 1, 2, 0, 1, 0]
+
+
+def test_max_time_under_water_ignores_leading_nan():
+    # B tiene una racha de 2 periodos bajo el agua aunque empiece con NaN
+    df = pd.DataFrame({
+        "A": [100.0, 90.0, 95.0, 100.0, 80.0, 120.0],
+        "B": [np.nan, 100.0, 90.0, 95.0, 100.0, 80.0],
+    })
+
+    result = max_time_under_water(df)
+
+    assert result["A"] == 2
+    assert result["B"] == 2

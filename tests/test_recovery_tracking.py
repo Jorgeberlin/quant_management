@@ -56,7 +56,7 @@ def test_recovery_time_dataframe():
 
 
 def test_tracking_error_identical_is_zero(prices):
-    assert tracking_error(prices, prices, period="daily") == pytest.approx(0.0)
+    assert tracking_error(prices, prices, periods_per_year=252) == pytest.approx(0.0)
 
 
 def test_tracking_error_constant_outperformance_is_zero():
@@ -66,7 +66,7 @@ def test_tracking_error_constant_outperformance_is_zero():
     bench = prices_from_returns(bench_returns)
     portfolio = prices_from_returns(bench_returns + 0.001)
 
-    assert tracking_error(portfolio, bench, period="daily") == pytest.approx(0.0, abs=1e-12)
+    assert tracking_error(portfolio, bench, periods_per_year=252) == pytest.approx(0.0, abs=1e-12)
 
 
 def test_tracking_error_known_value():
@@ -77,13 +77,13 @@ def test_tracking_error_known_value():
 
     expected = np.std(active, ddof=1) * np.sqrt(252)
 
-    assert tracking_error(portfolio, bench, period="daily") == pytest.approx(expected)
+    assert tracking_error(portfolio, bench, periods_per_year=252) == pytest.approx(expected)
 
 
 def test_tracking_error_dataframe(prices):
     df = pd.DataFrame({"A": prices, "B": prices * 1.05})
 
-    result = tracking_error(df, prices, period="daily")
+    result = tracking_error(df, prices, periods_per_year=252)
 
     assert isinstance(result, pd.Series)
     assert result.tolist() == pytest.approx([0.0, 0.0])
