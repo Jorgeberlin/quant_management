@@ -173,25 +173,34 @@ def min_variance(
 
 
 def max_sharpe(
-    mu: pd.Series,
-    cov: pd.DataFrame,
+    mu: pd.Series | np.ndarray,
+    cov: pd.DataFrame | np.ndarray,
     risk_free_rate: float = 0.0,
     constraints: Constraints | None = None,
-) -> pd.Series:
-    """Cartera de máximo Sharpe (tangente): ``max (w'μ - rf) / sqrt(w' Σ w)``.
+) -> pd.Series | np.ndarray:
+    """Cartera de máximo Sharpe (tangente): max (w'μ - rf) / sqrt(w'Σw).
 
-    Si ``mu`` ya está en exceso sobre el tipo libre de riesgo, deja
-    ``risk_free_rate = 0``.
+    Si mu ya está en exceso sobre el tipo libre de riesgo, deja
+    risk_free_rate = 0.
     """
     constraints = constraints or Constraints()
-    m, sigma = mu.to_numpy(), cov.to_numpy()
+
+    index = mu.index if isinstance(mu, pd.Series) else None
+    m = np.asarray(mu).reshape(-1)
+    sigma = np.asarray(cov)
+
+    if sigma.shape != (len(m), len(m)):
+        raise ValueError("cov debe tener dimensiones (n_assets, n_assets).")
 
     def neg_sharpe(w):
         return -(w @ m - risk_free_rate) / np.sqrt(w @ sigma @ w)
 
-    w = _solve(neg_sharpe, mu.index, constraints)
+    w = _solve(neg_sharpe, index if index is not None else pd.RangeIndex(len(m)), constraints)
 
-    return pd.Series(w, index=mu.index, name="max_sharpe")
+    if index is not None:
+        return pd.Series(w, index=index, name="max_sharpe")
+
+    return np.asarray(w)
 
 
 def target_volatility(
